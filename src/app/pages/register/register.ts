@@ -27,10 +27,8 @@ export class RegisterComponent {
     this.registerForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      country: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]],
-      acceptTerms: [false, [Validators.requiredTrue]]
+      confirmPassword: ['', [Validators.required]]
     }, {
       validators: this.passwordMatchValidator
     });
@@ -54,11 +52,10 @@ export class RegisterComponent {
       this.errorMessage = '';
       this.successMessage = '';
       
-      const { name, email, country, password } = this.registerForm.value;
+      const { name, email, password } = this.registerForm.value;
       
       this.authService.register(email, password, {
         name,
-        country,
         role: 'user' 
       }).subscribe({
         next: () => {
@@ -93,8 +90,6 @@ export class RegisterComponent {
   // Getters pour faciliter l'accès aux contrôles dans le template
   get name() { return this.registerForm.get('name'); }
   get email() { return this.registerForm.get('email'); }
-  get country() { return this.registerForm.get('country'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
-  get acceptTerms() { return this.registerForm.get('acceptTerms'); }
 }

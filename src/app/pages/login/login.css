@@ -88,7 +88,7 @@
 
 .login-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .logo {
@@ -108,7 +108,7 @@
 }
 
 .login-header h2 {
-  color: #1e293b;
+  color: #42a5f5;
   font-size: 2rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
@@ -213,31 +213,17 @@ input.input-error {
 
 .form-options {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-size: 0.9rem;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  color: #64748b;
-}
-
-.remember-me input[type="checkbox"] {
-  width: auto;
-  cursor: pointer;
-  accent-color: #42a5f5;
 }
 
 .forgot-password {
   color: #42a5f5;
   text-decoration: none;
   font-weight: 600;
-  transition: color 0.3s;
+  transition: color 0.3s; 
 }
 
 .forgot-password:hover {
@@ -259,6 +245,7 @@ input.input-error {
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
   position: relative;
   overflow: hidden;
+  margin-bottom: 1rem;
 }
 
 .btn-submit::before {
@@ -315,7 +302,7 @@ input.input-error {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 2rem 0;
+  margin: 0.5rem 0;
   color: #94a3b8;
 }
 
@@ -333,32 +320,19 @@ input.input-error {
 }
 
 .register-section {
+  color: #64748b;;
   text-align: center;
-}
-
-.register-section p {
-  color: #64748b;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
   font-size: 0.95rem;
 }
 
-.btn-register {
-  display: inline-block;
-  padding: 0.75rem 2rem;
-  background: white;
+.register-section a {
   color: #42a5f5;
-  border: 2px solid #42a5f5;
-  border-radius: 10px;
-  text-decoration: none;
   font-weight: 600;
-  transition: all 0.3s ease;
+  text-decoration: none;
 }
-
-.btn-register:hover {
-  background: #42a5f5;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(66, 165, 245, 0.3);
+.register-section a:hover {
+  text-decoration: underline;
 }
 
 /* Responsive */
