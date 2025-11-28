@@ -5,6 +5,7 @@ import { Datasets } from './pages/datasets/datasets';
 import { LoginComponent } from './pages/login/login';
 import { RegisterComponent } from './pages/register/register';
 import { DatasetDetails } from './pages/dataset-details/dataset-details';
+import { DashboardComponent } from './pages/dashboard/dashboard';
 import { authGuard, adminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -23,7 +24,11 @@ export const routes: Routes = [
             {
                 path: 'datasets/:id',
                 component: DatasetDetails
-            }
+            },
+            { 
+                path: 'dashboard', 
+                component: DashboardComponent,
+            },
         ]
     },
 ];

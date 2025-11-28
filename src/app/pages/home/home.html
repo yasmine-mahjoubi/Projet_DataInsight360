@@ -30,7 +30,7 @@
         <div class="main">
             <h6 class="section-title">NAVIGATION</h6>
             <nav class="liens">
-                <a routerLink="/dashboard" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+                <a routerLink="/home/dashboard" routerLinkActive="active" (click)="closeSidebarOnMobile()">
                     <i class="ri-dashboard-line"></i>
                     <span class="link-text">Dashboard</span>
                 </a>
@@ -38,17 +38,13 @@
                     <i class="ri-database-2-line"></i>
                     <span class="link-text">Datasets</span>
                 </a>
-                <a routerLink="/analyses" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+                <a routerLink="/home/analyses" routerLinkActive="active" (click)="closeSidebarOnMobile()">
                     <i class="ri-line-chart-line"></i>
                     <span class="link-text">Analyses</span>
                 </a>
-                <a routerLink="/themes" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+                <a routerLink="/home/themes" routerLinkActive="active" (click)="closeSidebarOnMobile()">
                     <i class="ri-folder-3-fill"></i>
                     <span class="link-text">Thèmes</span>
-                </a>
-                <a routerLink="/utilisateurs" routerLinkActive="active" (click)="closeSidebarOnMobile()">
-                    <i class="ri-group-fill"></i>
-                    <span class="link-text">Utilisateurs</span>
                 </a>
             </nav>
         </div>
