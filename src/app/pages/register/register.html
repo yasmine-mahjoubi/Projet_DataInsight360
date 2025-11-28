@@ -5,7 +5,7 @@
       <p class="subtitle">Rejoignez DataInsight360</p>
     </div>
     
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <form #registerForm="ngForm" (ngSubmit)="onSubmit(registerForm)">
       <!-- Nom complet -->
       <div class="form-group">
         <label for="name">Nom complet</label>
@@ -17,14 +17,18 @@
           <input 
             id="name"
             type="text" 
-            formControlName="name" 
+            name="name"
+            [(ngModel)]="user.name"
+            #name="ngModel"
+            required
+            minlength="3"
             placeholder="Foulen Ben Foulen"
-            [class.input-error]="name?.invalid && name?.touched"
+            [class.input-error]="name.invalid && name.touched"
           />
         </div>
-        <div class="error-message" *ngIf="name?.invalid && name?.touched">
-          <span *ngIf="name?.errors?.['required']">Le nom est requis</span>
-          <span *ngIf="name?.errors?.['minlength']">Minimum 3 caractères</span>
+        <div class="error-message" *ngIf="name.invalid && name.touched">
+          <span *ngIf="name.errors?.['required']">Le nom est requis</span>
+          <span *ngIf="name.errors?.['minlength']">Minimum 3 caractères</span>
         </div>
       </div>
 
@@ -39,14 +43,18 @@
           <input 
             id="email"
             type="email" 
-            formControlName="email" 
+            name="email"
+            [(ngModel)]="user.email"
+            #email="ngModel"
+            required
+            email
             placeholder="votre@email.com"
-            [class.input-error]="email?.invalid && email?.touched"
+            [class.input-error]="email.invalid && email.touched"
           />
         </div>
-        <div class="error-message" *ngIf="email?.invalid && email?.touched">
-          <span *ngIf="email?.errors?.['required']">L'email est requis</span>
-          <span *ngIf="email?.errors?.['email']">Email invalide</span>
+        <div class="error-message" *ngIf="email.invalid && email.touched">
+          <span *ngIf="email.errors?.['required']">L'email est requis</span>
+          <span *ngIf="email.errors?.['email']">Email invalide</span>
         </div>
       </div>
 
@@ -61,9 +69,13 @@
           <input 
             id="password"
             [type]="showPassword ? 'text' : 'password'" 
-            formControlName="password" 
+            name="password"
+            [(ngModel)]="user.password"
+            #password="ngModel"
+            required
+            minlength="6"
             placeholder="••••••••"
-            [class.input-error]="password?.invalid && password?.touched"
+            [class.input-error]="password.invalid && password.touched"
           />
           <button 
             type="button" 
@@ -80,9 +92,9 @@
             </svg>
           </button>
         </div>
-        <div class="error-message" *ngIf="password?.invalid && password?.touched">
-          <span *ngIf="password?.errors?.['required']">Le mot de passe est requis</span>
-          <span *ngIf="password?.errors?.['minlength']">Minimum 6 caractères</span>
+        <div class="error-message" *ngIf="password.invalid && password.touched">
+          <span *ngIf="password.errors?.['required']">Le mot de passe est requis</span>
+          <span *ngIf="password.errors?.['minlength']">Minimum 6 caractères</span>
         </div>
       </div>
 
@@ -97,9 +109,12 @@
           <input 
             id="confirmPassword"
             [type]="showConfirmPassword ? 'text' : 'password'" 
-            formControlName="confirmPassword" 
+            name="confirmPassword"
+            [(ngModel)]="user.confirmPassword"
+            #confirmPassword="ngModel"
+            required
             placeholder="••••••••"
-            [class.input-error]="(confirmPassword?.invalid && confirmPassword?.touched) || (registerForm.errors?.['passwordMismatch'] && confirmPassword?.touched)"
+            [class.input-error]="(confirmPassword.invalid && confirmPassword.touched) || (passwordMismatch && confirmPassword.touched)"
           />
           <button 
             type="button" 
@@ -116,10 +131,10 @@
             </svg>
           </button>
         </div>
-        <div class="error-message" *ngIf="confirmPassword?.invalid && confirmPassword?.touched">
-          <span *ngIf="confirmPassword?.errors?.['required']">La confirmation est requise</span>
+        <div class="error-message" *ngIf="confirmPassword.invalid && confirmPassword.touched">
+          <span *ngIf="confirmPassword.errors?.['required']">La confirmation est requise</span>
         </div>
-        <div class="error-message" *ngIf="registerForm.errors?.['passwordMismatch'] && confirmPassword?.touched">
+        <div class="error-message" *ngIf="passwordMismatch && confirmPassword.touched">
           <span>Les mots de passe ne correspondent pas</span>
         </div>
       </div>
@@ -131,35 +146,38 @@
           <line x1="12" y1="8" x2="12" y2="12"/>
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-            <span>{{ errorMessage }}</span>
+        <span>{{ errorMessage }}</span>
+      </div>
+      
+      <div class="success-message" *ngIf="successMessage">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>{{ successMessage }}</span>
+      </div>
+
+      <!-- Bouton d'inscription -->
+      <button 
+        type="submit" 
+        class="btn-submit" 
+        [disabled]="registerForm.invalid || loading || passwordMismatch"
+        [class.loading]="loading"
+      >
+        <span *ngIf="!loading">S'inscrire</span>
+        <span *ngIf="loading" class="spinner"></span>
+      </button>
+    </form>
+
+    <div class="divider">
+      <span>ou</span>
     </div>
-    <div class="success-message" *ngIf="successMessage">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-      <polyline points="22 4 12 14.01 9 11.01"/>
-    </svg>
-    <span>{{ successMessage }}</span>
+    
+    <p class="login-section">Vous avez déjà un compte ?
+      <a routerLink="/login"> Se connecter</a>
+    </p>
   </div>
-
-  <!-- Bouton d'inscription -->
-  <button 
-    type="submit" 
-    class="btn-submit" 
-    [disabled]="registerForm.invalid || loading"
-    [class.loading]="loading"
-  >
-    <span *ngIf="!loading">S'inscrire</span>
-    <span *ngIf="loading" class="spinner"></span>
-  </button>
-</form>
-
-<div class="divider">
-  <span>ou</span>
-</div>
-  <p class="login-section">Vous avez déjà un compte ?
-    <a routerLink="/login"> Se connecter</a>
-  </p>
-</div>
+  
   <div class="background-pattern">
     <div class="circle circle-1"></div>
     <div class="circle circle-2"></div>
