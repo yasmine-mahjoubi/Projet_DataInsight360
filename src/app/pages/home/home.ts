@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common'; 
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -11,8 +12,11 @@ import { RouterModule } from '@angular/router';
   styleUrl: './home.css',
 })
 export class Home implements OnInit, OnDestroy {
+  private authService = inject(AuthService); // Ajouter l'injection du service
+  
   sidebarOpen = false;
   isMobile = false;
+  isLoggingOut = false; // Pour éviter les clics multiples
   private resizeListener!: () => void;
 
   constructor(private router: Router) {}
@@ -80,14 +84,29 @@ export class Home implements OnInit, OnDestroy {
     }
   }
 
+  // ✅ MÉTHODE LOGOUT CORRIGÉE
   logout() {
     // Fermer la sidebar sur mobile avant la déconnexion
     this.closeSidebarOnMobile();
     
-    // Implémentation de la déconnexion
-    console.log('Déconnexion...');
-    // this.authService.logout();
-    // this.router.navigate(['/login']);
+    // Empêcher les clics multiples
+    if (this.isLoggingOut) return;
+    
+    this.isLoggingOut = true;
+    console.log('Déconnexion en cours...');
+    
+    this.authService.logout().subscribe({
+      next: () => {
+        console.log('Déconnexion réussie');
+      },
+      error: (error) => {
+        console.error('Erreur lors de la déconnexion:', error);
+        this.isLoggingOut = false;
+      },
+      complete: () => {
+        this.isLoggingOut = false;
+      }
+    });
   }
 
   // Méthode pour gérer les clics en dehors de la sidebar
@@ -111,5 +130,14 @@ export class Home implements OnInit, OnDestroy {
     if (this.sidebarOpen) {
       this.closeSidebarOnMobile();
     }
+  }
+
+  // ✅ Getters pour accéder aux infos utilisateur
+  get userProfile() {
+    return this.authService.getUserProfile();
+  }
+
+  get currentUser() {
+    return this.authService.currentUser();
   }
 }

@@ -22,8 +22,8 @@
         <div class="profile">
             <img src="../../../assets/images/avatar.png" alt="Profil" class="profile-img">
             <div class="profile-info">
-                <span class="name">Nom et Prénom</span>
-                <span class="role">Role</span>
+                <span class="name">{{ userProfile?.name || 'Utilisateur' }}</span>
+                <span class="role">{{ userProfile?.role || 'User' }}</span>
             </div>
         </div>
 
@@ -34,7 +34,7 @@
                     <i class="ri-dashboard-line"></i>
                     <span class="link-text">Dashboard</span>
                 </a>
-                <a routerLink="/datasets" routerLinkActive="active" (click)="closeSidebarOnMobile()">
+                <a routerLink="/home/datasets" routerLinkActive="active" (click)="closeSidebarOnMobile()">
                     <i class="ri-database-2-line"></i>
                     <span class="link-text">Datasets</span>
                 </a>
@@ -54,9 +54,14 @@
         </div>
 
         <div class="footer">
-            <button class="logout-btn" (click)="logout()">
+            <button 
+                class="logout-btn" 
+                (click)="logout()"
+                [disabled]="isLoggingOut"
+                [class.loading]="isLoggingOut"
+            >
                 <i class="ri-logout-box-r-line"></i>
-                <span class="logout-text">DECONNEXION</span>
+                <span class="logout-text">{{ isLoggingOut ? 'DÉCONNEXION...' : 'DÉCONNEXION' }}</span>
             </button>
         </div>
     </div>
