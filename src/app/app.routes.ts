@@ -7,6 +7,7 @@ import { RegisterComponent } from './pages/register/register';
 import { DatasetDetails } from './pages/dataset-details/dataset-details';
 import { DashboardComponent } from './pages/dashboard/dashboard';
 import { Themes } from './pages/themes/themes';
+import { Users } from './pages/users/users';
 import { authGuard, adminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -34,6 +35,10 @@ export const routes: Routes = [
                 path: 'themes',
                 component: Themes
             },
+            {
+                path: 'users',
+                component: Users
+            }
         ]
     },
 ];

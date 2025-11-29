@@ -1,0 +1,337 @@
+<div class="users-container">
+    <!-- Header -->
+    <div class="users-header">
+        <h1 class="page-title">Gestion des Utilisateurs</h1>
+        <p class="page-subtitle">Gérez les comptes utilisateurs de votre plateforme</p>
+    </div>
+
+    <!-- Section de contrôles -->
+    <div class="controls-section-modern">
+        <!-- Barre de recherche -->
+        <div class="search-box-modern">
+            <i class="ri-search-line"></i>
+            <input 
+                type="text" 
+                placeholder="Rechercher un utilisateur..." 
+                class="search-input-modern"
+                [(ngModel)]="searchTerm"
+                (input)="applyFilters()">
+        </div>
+
+        <!-- Séparateur visuel -->
+        <div class="separator"></div>
+
+        <!-- Filtres compacts -->
+        <div class="filters-compact">
+            <div class="filter-item">
+                <select 
+                    class="filter-select-modern"
+                    [(ngModel)]="selectedRole"
+                    (change)="applyFilters()">
+                    <option value="">Tous les rôles</option>
+                    <option value="admin">Administrateur</option>
+                    <option value="user">Utilisateur</option>
+                    <option value="DS">Data Scientest</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <select 
+                    class="filter-select-modern"
+                    [(ngModel)]="selectedCountry"
+                    (change)="applyFilters()">
+                    <option value="">Tous les pays</option>
+                    <option *ngFor="let country of countries" [value]="country">
+                        {{ country }}
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Séparateur visuel -->
+        <div class="separator"></div>
+
+        <!-- Tri compact -->
+        <div class="sort-compact">
+            <select 
+                class="sort-select-modern"
+                [(ngModel)]="selectedSort"
+                (change)="applySort()">
+                <option value="name-asc">Nom A → Z</option>
+                <option value="name-desc">Nom Z → A</option>
+                <option value="email-asc">Email A → Z</option>
+                <option value="email-desc">Email Z → A</option>
+            </select>
+        </div>
+
+        <!-- Séparateur visuel -->
+        <div class="separator" *ngIf="hasActiveFilters"></div>
+
+        <!-- Actions et résultats -->
+        <div class="actions-compact" *ngIf="hasActiveFilters">
+            <span class="results-count-modern">{{ filteredUsers.length }} résultat(s)</span>
+            <button class="clear-filters-modern" (click)="clearFilters()">
+                <i class="ri-close-circle-fill"></i>
+                Effacer
+            </button>
+        </div>
+
+        <!-- Bouton Nouvel Utilisateur à droite -->
+        <div class="new-user-section">
+            <button class="new-user-btn" (click)="createNewUser()">
+                <i class="ri-user-add-line"></i>
+                Nouvel utilisateur
+            </button>
+        </div>
+    </div>
+
+    <!-- Grille des utilisateurs -->
+    <div class="users-grid">
+        <!-- User Card -->
+        <div 
+            class="user-card" 
+            *ngFor="let user of paginatedUsers; trackBy: trackByUserId">
+            
+            <div class="user-header">
+                <div class="user-avatar">
+                    <i class="ri-user-3-line"></i>
+                </div>
+                <div class="user-info">
+                    <h3 class="user-name">{{ user.name }}</h3>
+                    <p class="user-email">{{ user.email }}</p>
+                </div>
+                <span class="user-role" [class]="getRoleClass(user.role)">
+                    {{ getRoleLabel(user.role) }}
+                </span>
+            </div>
+            
+            <div class="user-details">
+                <div class="user-detail">
+                    <i class="ri-map-pin-line"></i>
+                    <span>{{ user.country || 'Non spécifié' }}</span>
+                </div>
+                <div class="user-detail">
+                    <i class="ri-calendar-2-line"></i>
+                    <span>Inscrit le {{ formatDate(user.dateC) }}</span>
+                </div>
+            </div>
+            
+            <div class="user-actions">
+                <button class="action-btn edit-btn" (click)="editUser(user)">
+                    <i class="ri-edit-line"></i>
+                    Modifier
+                </button>
+                <button class="action-btn delete-btn" (click)="confirmDelete(user)">
+                    <i class="ri-delete-bin-line"></i>
+                    Supprimer
+                </button>
+            </div>
+        </div>
+
+        <!-- État vide -->
+        <div class="empty-state" *ngIf="filteredUsers.length === 0">
+            <i class="ri-user-search-line"></i>
+            <h3>Aucun utilisateur trouvé</h3>
+            <p *ngIf="!searchTerm && !selectedRole && !selectedCountry">Commencez par créer votre premier utilisateur.</p>
+            <p *ngIf="searchTerm || selectedRole || selectedCountry">Aucun utilisateur ne correspond à vos critères de recherche.</p>
+            <button *ngIf="!searchTerm && !selectedRole && !selectedCountry" class="clear-filters-btn primary" (click)="createNewUser()">
+                Créer un utilisateur
+            </button>
+            <button *ngIf="searchTerm || selectedRole || selectedCountry" class="clear-filters-btn primary" (click)="clearFilters()">
+                Effacer les filtres
+            </button>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="filteredUsers.length > 0 && totalPages > 1">
+        <div class="pagination-info">
+            Affichage de {{ startIndex + 1 }} à {{ endIndex }} sur {{ totalFilteredItems }} utilisateurs
+        </div>
+        
+        <div class="pagination-controls">
+            <button 
+                class="pagination-btn" 
+                [class.disabled]="currentPage === 1"
+                (click)="goToPage(1)"
+                title="Première page">
+                <i class="ri-skip-back-line"></i>
+            </button>
+            
+            <button 
+                class="pagination-btn" 
+                [class.disabled]="currentPage === 1"
+                (click)="previousPage()"
+                title="Page précédente">
+                <i class="ri-arrow-left-s-line"></i>
+            </button>
+
+            <!-- Pages numérotées -->
+            <div class="page-numbers">
+                <button 
+                    *ngFor="let pageItem of getVisiblePages(); let i = index"
+                    class="page-number"
+                    [class.active]="pageItem.type === 'number' && pageItem.value === currentPage"
+                    [class.ellipsis]="pageItem.type === 'ellipsis'"
+                    (click)="onPageClick(pageItem)"
+                    [disabled]="pageItem.type === 'ellipsis'"
+                    [title]="pageItem.type === 'number' ? 'Page ' + pageItem.value : ''">
+                    {{ pageItem.value }}
+                </button>
+            </div>
+
+            <button 
+                class="pagination-btn" 
+                [class.disabled]="currentPage === totalPages"
+                (click)="nextPage()"
+                title="Page suivante">
+                <i class="ri-arrow-right-s-line"></i>
+            </button>
+            
+            <button 
+                class="pagination-btn" 
+                [class.disabled]="currentPage === totalPages"
+                (click)="goToPage(totalPages)"
+                title="Dernière page">
+                <i class="ri-skip-forward-line"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modale d'ajout/modification d'utilisateur -->
+<div class="modal-overlay" [class.active]="showUserModal" (click)="closeUserModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                {{ editingUser ? 'Modifier l\'utilisateur' : 'Nouvel Utilisateur' }}
+            </h2>
+            <button class="modal-close" (click)="closeUserModal()">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <form class="modal-form" [formGroup]="userForm" (ngSubmit)="onUserSubmit()">
+            <!-- Champ Nom -->
+            <div class="form-group">
+                <label for="userName" class="form-label">
+                    Nom complet 
+                </label>
+                <input
+                    type="text"
+                    id="userName"
+                    formControlName="name"
+                    class="form-input"
+                    placeholder="Ex: John Doe"
+                    [class.error]="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+                <div class="error-message" *ngIf="userForm.get('name')?.invalid && userForm.get('name')?.touched">
+                    Le nom est requis et doit contenir au moins 2 caractères
+                </div>
+            </div>
+
+            <!-- Champ Email -->
+            <div class="form-group">
+                <label for="userEmail" class="form-label">
+                    Adresse email 
+                </label>
+                <input
+                    type="email"
+                    id="userEmail"
+                    formControlName="email"
+                    class="form-input"
+                    placeholder="Ex: john.doe@example.com"
+                    [class.error]="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+                <div class="error-message" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+                    <span *ngIf="userForm.get('email')?.errors?.['required']">L'email est requis</span>
+                    <span *ngIf="userForm.get('email')?.errors?.['email']">Format d'email invalide</span>
+                </div>
+            </div>
+
+            <!-- Champ Rôle -->
+            <div class="form-group">
+                <label for="userRole" class="form-label">
+                    Rôle 
+                </label>
+                <select
+                    id="userRole"
+                    formControlName="role"
+                    class="form-select"
+                    [class.error]="userForm.get('role')?.invalid && userForm.get('role')?.touched">
+                    <option value="">Sélectionnez un rôle</option>
+                    <option value="admin">Administrateur</option>
+                    <option value="user">Utilisateur</option>
+                    <option value="viewer">Observateur</option>
+                </select>
+                <div class="error-message" *ngIf="userForm.get('role')?.invalid && userForm.get('role')?.touched">
+                    Veuillez sélectionner un rôle
+                </div>
+            </div>
+
+            <!-- Champ Pays -->
+            <div class="form-group">
+                <label for="userCountry" class="form-label">
+                    Pays 
+                </label>
+                <select
+                    id="userCountry"
+                    formControlName="country"
+                    class="form-select"
+                    [class.error]="userForm.get('country')?.invalid && userForm.get('country')?.touched">
+                    <option value="">Sélectionnez un pays</option>
+                    <option *ngFor="let country of countries" [value]="country">
+                        {{ country }}
+                    </option>
+                </select>
+                <div class="error-message" *ngIf="userForm.get('country')?.invalid && userForm.get('country')?.touched">
+                    Veuillez sélectionner un pays
+                </div>
+            </div>
+
+            <!-- Zone d'affichage des erreurs -->
+            <div class="form-group" *ngIf="formError">
+                <div class="error-summary">
+                    <div class="error-summary-content" [innerHTML]="formError"></div>
+                </div>
+            </div>
+
+            <!-- Actions du formulaire -->
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" (click)="closeUserModal()">
+                    Annuler
+                </button>
+                <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+                    <i class="ri-user-add-line" *ngIf="!isSubmitting && !editingUser"></i>
+                    <i class="ri-edit-line" *ngIf="!isSubmitting && editingUser"></i>
+                    <i class="ri-loader-4-line spinning" *ngIf="isSubmitting"></i>
+                    {{ isSubmitting ? 'Traitement en cours...' : (editingUser ? 'Modifier l\'utilisateur' : 'Ajouter l\'utilisateur') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modales existantes -->
+<app-confirm-modal 
+  *ngIf="showConfirmModal"
+  title="Confirmer la suppression"
+  [message]="getDeleteMessage()"
+  btnOkText="Supprimer"
+  btnCancelText="Annuler"
+  (close)="onConfirmModalClose($event)">
+</app-confirm-modal>
+
+<app-succes-modal 
+  *ngIf="showSuccessModal"
+  title="Succès"
+  [message]="successMessage"
+  btnText="OK"
+  (close)="onSuccessModalClose()">
+</app-succes-modal>
+
+<app-error-modal 
+  *ngIf="showErrorModal"
+  title="Erreur"
+  [message]="errorMsg"
+  btnText="OK"
+  (close)="onErrorModalClose()">
+</app-error-modal>
