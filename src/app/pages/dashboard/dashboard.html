@@ -1,238 +1,404 @@
 <div class="dashboard-container">
   <!-- Loading State -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner-large"></div>
-    <p>Chargement de votre dashboard...</p>
-  </div>
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner-large"></div>
+      <p>Chargement de votre dashboard...</p>
+    </div>
+  }
 
   <!-- Error State -->
-  <div *ngIf="error && !loading" class="error-state">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    <p>{{ error }}</p>
-    <button class="btn-retry" (click)="loadDashboardData()">Réessayer</button>
-  </div>
-
-  <!-- Dashboard Content -->
-  <div *ngIf="dashboardData && !loading" class="dashboard-content">
-    <!-- Header -->
-    <div class="dashboard-header">
-      <div>
-        <h1 class="dashboard-title">Tableau de bord</h1>
-        <p class="dashboard-subtitle">Bienvenue, {{ userProfile?.name || 'Utilisateur' }}</p>
-      </div>
-      <button class="btn-refresh" (click)="loadDashboardData()">
+  @if (error && !loading) {
+    <div class="error-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <h3>Erreur de chargement</h3>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="loadDashboardData()">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
         </svg>
-        Actualiser
+        Réessayer
       </button>
     </div>
+  }
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <!-- Total Datasets -->
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #42a5f5 0%, #2196f3 100%);">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
-            <polyline points="13 2 13 9 20 9"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Total Datasets</p>
-          <h3 class="stat-value">{{ dashboardData.totalDatasets }}</h3>
-        </div>
-      </div>
-
-      <!-- Total Analyses -->
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <line x1="12" y1="20" x2="12" y2="10"/>
-            <line x1="18" y1="20" x2="18" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="16"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Total Analyses</p>
-          <h3 class="stat-value">{{ dashboardData.totalAnalyses }}</h3>
-        </div>
-      </div>
-
-      <!-- Analyses ce mois -->
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Analyses ce mois</p>
-          <h3 class="stat-value">{{ dashboardData.analysesThisMois }}</h3>
-        </div>
-      </div>
-
-      <!-- Dataset le plus volumineux -->
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #ab47bc 0%, #9c27b0 100%);">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M20 7h-9"/>
-            <path d="M14 17H5"/>
-            <circle cx="17" cy="17" r="3"/>
-            <circle cx="7" cy="7" r="3"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <p class="stat-label">Dataset le plus gros</p>
-          <h3 class="stat-value-small" *ngIf="dashboardData.biggestDataset">
-            {{ dashboardData.biggestDataset.nom || 'N/A' }}
-          </h3>
-          <h3 class="stat-value-small" *ngIf="!dashboardData.biggestDataset">Aucun</h3>
-          <p class="stat-detail" *ngIf="dashboardData.biggestDataset">
-            {{ dashboardData.biggestDataset.nombreLignes || 0 }} lignes
+  <!-- Dashboard Content -->
+  @if (dashboardData && !loading) {
+    <div class="dashboard-content">
+      <!-- Header -->
+      <div class="dashboard-header">
+        <div class="header-content">
+          <h1 class="dashboard-title">Tableau de bord</h1>
+          <p class="dashboard-subtitle">
+            <span class="welcome-text">Bienvenue,</span>
+            <strong>{{ userProfile?.name || 'Utilisateur' }}</strong>
           </p>
         </div>
+        <button class="btn-refresh" (click)="loadDashboardData()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+          <span>Actualiser</span>
+        </button>
       </div>
-    </div>
 
-    <!-- Charts Section -->
-    <div class="charts-section">
-      <!-- Évolution des analyses -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">Évolution des analyses</h3>
-          <span class="chart-subtitle">6 derniers mois</span>
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <!-- Total Datasets -->
+        <div class="stat-card card-blue">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                <polyline points="13 2 13 9 20 9"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Total Datasets</p>
+            <h3 class="stat-value">{{ dashboardData.totalDatasets }}</h3>
+            <p class="stat-trend positive">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+              Disponibles
+            </p>
+          </div>
         </div>
-        <div class="chart-content">
-          <div class="bar-chart">
-            <div class="bar-item" *ngFor="let item of dashboardData.analysesByMonth">
-              <div class="bar-wrapper">
-                <div 
-                  class="bar" 
-                  [style.height]="getBarHeight(item.count, getMaxValue(dashboardData.analysesByMonth))"
-                  [style.background]="'linear-gradient(180deg, #42a5f5 0%, #2196f3 100%)'"
-                >
-                  <span class="bar-value">{{ item.count }}</span>
+
+        <!-- Total Analyses -->
+        <div class="stat-card card-green">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="20" x2="12" y2="10"/>
+                <line x1="18" y1="20" x2="18" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="16"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Total Analyses</p>
+            <h3 class="stat-value">{{ dashboardData.totalAnalyses }}</h3>
+            <p class="stat-trend positive">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+              Effectuées
+            </p>
+          </div>
+        </div>
+
+        <!-- Analyses ce mois -->
+        <div class="stat-card card-orange">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Ce mois-ci</p>
+            <h3 class="stat-value">{{ dashboardData.analysesThisMois }}</h3>
+            <p class="stat-trend">
+              Analyses effectuées
+            </p>
+          </div>
+        </div>
+
+        <!-- Dataset le plus volumineux -->
+        <div class="stat-card card-purple">
+          <div class="stat-icon-wrapper">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 7h-9"/>
+                <path d="M14 17H5"/>
+                <circle cx="17" cy="17" r="3"/>
+                <circle cx="7" cy="7" r="3"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Plus volumineux</p>
+            @if (dashboardData.biggestDataset) {
+              <h3 class="stat-value-small">{{ dashboardData.biggestDataset.name || dashboardData.biggestDataset.nom || 'N/A' }}</h3>
+              <p class="stat-trend">
+                {{ dashboardData.biggestDataset.nombreLignes || 0 }} lignes
+              </p>
+            } @else {
+              <h3 class="stat-value">0</h3>
+              <p class="stat-trend">Aucun dataset</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Charts Section -->
+      <div class="main-charts">
+        <!-- Évolution des analyses (Area Chart) -->
+        <div class="chart-card chart-large">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Évolution des analyses</h3>
+              <p class="chart-subtitle">6 derniers mois</p>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-dot"></span>
+              <span>Analyses</span>
+            </div>
+          </div>
+          <div class="chart-content">
+            @if (dashboardData.analysesByMonth.length > 0) {
+              <div class="area-chart">
+                <div class="chart-grid">
+                  @for (line of [0, 1, 2, 3, 4]; track line) {
+                    <div class="grid-line"></div>
+                  }
+                </div>
+                <svg class="area-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#42a5f5;stop-opacity:0.4" />
+                      <stop offset="100%" style="stop-color:#42a5f5;stop-opacity:0" />
+                    </linearGradient>
+                  </defs>
+                  <!-- Area fill -->
+                  <path [attr.d]="getAreaPath(dashboardData.analysesByMonth)" fill="url(#areaGradient)" />
+                  <!-- Line -->
+                  <path [attr.d]="getLinePath(dashboardData.analysesByMonth)" fill="none" stroke="#42a5f5" stroke-width="3" />
+                  <!-- Points -->
+                  @for (item of dashboardData.analysesByMonth; track $index) {
+                    <circle 
+                      [attr.cx]="getPointX($index, dashboardData.analysesByMonth.length)" 
+                      [attr.cy]="getPointY(item.count, getMaxValue(dashboardData.analysesByMonth))" 
+                      r="5" 
+                      fill="#42a5f5" 
+                      stroke="white" 
+                      stroke-width="2"
+                    />
+                  }
+                </svg>
+                <div class="chart-labels">
+                  @for (item of dashboardData.analysesByMonth; track $index) {
+                    <div class="chart-label">
+                      <span class="label-month">{{ item.month }}</span>
+                      <span class="label-value">{{ item.count }}</span>
+                    </div>
+                  }
                 </div>
               </div>
-              <span class="bar-label">{{ item.month }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Répartition par thème -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">Répartition par thème</h3>
-          <span class="chart-subtitle">Datasets par catégorie</span>
-        </div>
-        <div class="chart-content">
-          <div class="pie-chart-container" *ngIf="dashboardData.datasetsByTheme.length > 0">
-            <div class="legend">
-              <div class="legend-item" *ngFor="let item of dashboardData.datasetsByTheme; let i = index">
-                <div class="legend-color" [style.background]="colors[i % colors.length]"></div>
-                <span class="legend-label">{{ item.name }}</span>
-                <span class="legend-value">{{ item.count }}</span>
+            } @else {
+              <div class="no-data">
+                <p>Aucune donnée disponible</p>
               </div>
+            }
+          </div>
+        </div>
+
+        <!-- Répartition par thème (Pie Chart) -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Répartition par thème</h3>
+              <p class="chart-subtitle">Datasets par catégorie</p>
             </div>
           </div>
-          <div class="no-data" *ngIf="dashboardData.datasetsByTheme.length === 0">
-            <p>Aucun dataset disponible</p>
+          <div class="chart-content">
+            @if (dashboardData.datasetsByTheme.length > 0) {
+              <div class="pie-chart-wrapper">
+                <div class="pie-chart">
+                  <svg viewBox="0 0 200 200">
+                    @for (item of dashboardData.datasetsByTheme; track $index) {
+                      <circle
+                        cx="100"
+                        cy="100"
+                        [attr.r]="80"
+                        fill="transparent"
+                        [attr.stroke]="colors[$index % colors.length]"
+                        [attr.stroke-width]="40"
+                        [attr.stroke-dasharray]="getPieSegment(item.count, getTotalDatasetCount())"
+                        [attr.stroke-dashoffset]="getPieOffset($index)"
+                        [attr.transform]="'rotate(-90 100 100)'"
+                      />
+                    }
+                  </svg>
+                  <div class="pie-center">
+                    <span class="pie-total">{{ getTotalDatasetCount() }}</span>
+                    <span class="pie-label">Datasets</span>
+                  </div>
+                </div>
+                <div class="pie-legend">
+                  @for (item of dashboardData.datasetsByTheme; track $index) {
+                    <div class="legend-item">
+                      <div class="legend-color" [style.background]="colors[$index % colors.length]"></div>
+                      <div class="legend-details">
+                        <span class="legend-name">{{ item.name }}</span>
+                        <span class="legend-count">{{ item.count }} ({{ getPercentage(item.count, getTotalDatasetCount()) }}%)</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="no-data">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p>Aucun dataset disponible</p>
+              </div>
+            }
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Activité récente -->
-    <div class="activity-card">
-      <div class="activity-header">
-        <h3 class="activity-title">Activité récente</h3>
-        <a routerLink="/analyses" class="activity-link">Voir tout</a>
-      </div>
-      <div class="activity-list" *ngIf="dashboardData.recentActivity.length > 0">
-        <div class="activity-item" *ngFor="let activity of dashboardData.recentActivity">
-          <div class="activity-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="20" x2="12" y2="10"/>
-              <line x1="18" y1="20" x2="18" y2="4"/>
-              <line x1="6" y1="20" x2="6" y2="16"/>
-            </svg>
+      <!-- Secondary Charts -->
+      <div class="secondary-charts">
+        <!-- Distribution des statuts (Histogram) -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Statut des analyses</h3>
+              <p class="chart-subtitle">Distribution actuelle</p>
+            </div>
           </div>
-          <div class="activity-content">
-            <p class="activity-title-text">{{ getAnalyseTypeLabel(activity.type) }}</p>
-            <p class="activity-subtitle">{{ activity.datasetName }}</p>
+          <div class="chart-content">
+            <div class="histogram">
+              @for (status of ['Terminé', 'En cours', 'Échec']; track status) {
+                <div class="histogram-bar">
+                  <div class="bar-container">
+                    <div 
+                      class="bar-fill" 
+                      [style.height]="getStatusBarHeight(status)"
+                      [style.background]="getStatusColor(status)"
+                    >
+                      <span class="bar-value">{{ getStatusCount(status) }}</span>
+                    </div>
+                  </div>
+                  <span class="bar-label">{{ status }}</span>
+                </div>
+              }
+            </div>
           </div>
-          <div class="activity-meta">
-            <span class="activity-status" [style.color]="getStatusColor(activity.status)">
-              {{ activity.status }}
-            </span>
-            <span class="activity-date">{{ formatDate(activity.startedAt) }}</span>
+        </div>
+
+        <!-- Activité récente -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Activité récente</h3>
+              <p class="chart-subtitle">Dernières analyses</p>
+            </div>
+            <a routerLink="/home/analyses" class="view-all-link">Voir tout →</a>
+          </div>
+          <div class="chart-content">
+            @if (dashboardData.recentActivity.length > 0) {
+              <div class="activity-list">
+                @for (activity of dashboardData.recentActivity; track activity.id) {
+                  <div class="activity-item">
+                    <div class="activity-icon" [style.background]="getStatusColor(activity.status) + '20'">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" [attr.stroke]="getStatusColor(activity.status)" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"/>
+                        <line x1="18" y1="20" x2="18" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="16"/>
+                      </svg>
+                    </div>
+                    <div class="activity-details">
+                      <p class="activity-name">{{ activity.type }}</p>
+                      <p class="activity-dataset">{{ activity.datasetName }}</p>
+                    </div>
+                    <div class="activity-meta">
+                      <span class="activity-status-badge" [style.background]="getStatusColor(activity.status) + '20'" [style.color]="getStatusColor(activity.status)">
+                        {{ activity.status }}
+                      </span>
+                      <span class="activity-time">{{ formatDate(activity.startedAt) }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="no-data">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p>Aucune activité récente</p>
+              </div>
+            }
           </div>
         </div>
       </div>
-      <div class="no-data" *ngIf="dashboardData.recentActivity.length === 0">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <p>Aucune activité récente</p>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-section">
+        <h3 class="section-title">Actions rapides</h3>
+        <div class="actions-grid">
+          <a routerLink="/home/datasets" class="action-card">
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h4>Nouveau dataset</h4>
+              <p>Importer vos données</p>
+            </div>
+            <svg class="action-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+
+          <a routerLink="/home/analyses" class="action-card">
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="20" x2="12" y2="10"/>
+                <line x1="18" y1="20" x2="18" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="16"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h4>Nouvelle analyse</h4>
+              <p>Analyser vos datasets</p>
+            </div>
+            <svg class="action-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+
+          <a routerLink="/home/themes" class="action-card">
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h4>Gérer les thèmes</h4>
+              <p>Organiser vos catégories</p>
+            </div>
+            <svg class="action-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <h3 class="section-title">Actions rapides</h3>
-      <div class="actions-grid">
-        <a routerLink="/home/datasets" class="action-card">
-          <div class="action-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
-            </svg>
-          </div>
-          <div class="action-content">
-            <h4>Ajouter un dataset</h4>
-            <p>Importer de nouvelles données</p>
-          </div>
-        </a>
-
-        <a routerLink="/home/analyses" class="action-card">
-          <div class="action-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="20" x2="12" y2="10"/>
-              <line x1="18" y1="20" x2="18" y2="4"/>
-              <line x1="6" y1="20" x2="6" y2="16"/>
-            </svg>
-          </div>
-          <div class="action-content">
-            <h4>Nouvelle analyse</h4>
-            <p>Lancer une analyse statistique</p>
-          </div>
-        </a>
-
-        <a routerLink="/home/themes" class="action-card">
-          <div class="action-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-          <div class="action-content">
-            <h4>Gérer les thèmes</h4>
-            <p>Organiser vos catégories</p>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
+  }
 </div>

@@ -28,6 +28,8 @@ export class DashboardComponent implements OnInit {
 
   loadDashboardData() {
     this.loading = true;
+    this.error = '';
+    
     this.dashboardService.getDashboardData().subscribe({
       next: (data) => {
         this.dashboardData = data;
@@ -56,13 +58,7 @@ export class DashboardComponent implements OnInit {
   }
 
   getAnalyseTypeLabel(type: string): string {
-    const labels: { [key: string]: string } = {
-      'descriptive': 'Statistiques descriptives',
-      'correlation': 'Analyse de corrélation',
-      'anomalies': 'Détection d\'anomalies',
-      'histogramme': 'Histogramme'
-    };
-    return labels[type] || type;
+    return type; // Le type est déjà en français dans le modèle
   }
 
   formatDate(date: any): string {
@@ -74,8 +70,8 @@ export class DashboardComponent implements OnInit {
     if (days === 0) return "Aujourd'hui";
     if (days === 1) return "Hier";
     if (days < 7) return `Il y a ${days} jours`;
-    if (days < 30) return `Il y a ${Math.floor(days / 7)} semaines`;
-    return d.toLocaleDateString('fr-FR');
+    if (days < 30) return `Il y a ${Math.floor(days / 7)} semaine${Math.floor(days / 7) > 1 ? 's' : ''}`;
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   getMaxValue(data: any[]): number {
@@ -85,4 +81,93 @@ export class DashboardComponent implements OnInit {
   getBarHeight(value: number, max: number): string {
     return `${(value / max) * 100}%`;
   }
+
+  // Calculer le pourcentage pour le pie chart
+  getPercentage(value: number, total: number): number {
+    return total > 0 ? Math.round((value / total) * 100) : 0;
+  }
+
+  // Obtenir le total des datasets
+  getTotalDatasetCount(): number {
+    if (!this.dashboardData) return 0;
+    return this.dashboardData.datasetsByTheme.reduce((sum, item) => sum + item.count, 0);
+  }
+  // Méthodes pour l'area chart
+getLinePath(data: any[]): string {
+  if (data.length === 0) return '';
+  const max = this.getMaxValue(data);
+  const points = data.map((item, index) => {
+    const x = this.getPointX(index, data.length);
+    const y = this.getPointY(item.count, max);
+    return `${x},${y}`;
+  });
+  return `M ${points.join(' L ')}`;
+}
+
+getAreaPath(data: any[]): string {
+  if (data.length === 0) return '';
+  const max = this.getMaxValue(data);
+  const points = data.map((item, index) => {
+    const x = this.getPointX(index, data.length);
+    const y = this.getPointY(item.count, max);
+    return `${x},${y}`;
+  });
+  const firstX = this.getPointX(0, data.length);
+  const lastX = this.getPointX(data.length - 1, data.length);
+  return `M ${firstX},200 L ${points.join(' L ')} L ${lastX},200 Z`;
+}
+
+getPointX(index: number, total: number): number {
+  const width = 600;
+  const padding = 50;
+  const availableWidth = width - (padding * 2);
+  return padding + (index / (total - 1)) * availableWidth;
+}
+
+getPointY(value: number, max: number): number {
+  const height = 200;
+  const padding = 20;
+  const availableHeight = height - (padding * 2);
+  return height - padding - ((value / max) * availableHeight);
+}
+
+// Méthodes pour le pie chart
+getPieSegment(value: number, total: number): string {
+  const circumference = 2 * Math.PI * 80;
+  const percentage = total > 0 ? (value / total) : 0;
+  const segmentLength = circumference * percentage;
+  return `${segmentLength} ${circumference}`;
+}
+
+getPieOffset(index: number): number {
+  if (!this.dashboardData) return 0;
+  const circumference = 2 * Math.PI * 80;
+  const total = this.getTotalDatasetCount();
+  let offset = 0;
+  
+  for (let i = 0; i < index; i++) {
+    const item = this.dashboardData.datasetsByTheme[i];
+    const percentage = total > 0 ? (item.count / total) : 0;
+    offset += circumference * percentage;
+  }
+  
+  return -offset;
+}
+
+// Méthodes pour l'histogramme des statuts
+getStatusCount(status: string): number {
+  if (!this.dashboardData) return 0;
+  return this.dashboardData.recentActivity.filter(a => a.status === status).length;
+}
+
+getStatusBarHeight(status: string): string {
+  const count = this.getStatusCount(status);
+  const max = Math.max(
+    this.getStatusCount('Terminé'),
+    this.getStatusCount('En cours'),
+    this.getStatusCount('Échec'),
+    1
+  );
+  return `${(count / max) * 100}%`;
+}
 }
