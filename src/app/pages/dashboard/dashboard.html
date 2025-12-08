@@ -171,10 +171,10 @@
             <p class="activity-subtitle">{{ activity.datasetName }}</p>
           </div>
           <div class="activity-meta">
-            <span class="activity-status" [style.color]="getStatusColor(activity.statut)">
-              {{ activity.statut }}
+            <span class="activity-status" [style.color]="getStatusColor(activity.status)">
+              {{ activity.status }}
             </span>
-            <span class="activity-date">{{ formatDate(activity.dateCreation) }}</span>
+            <span class="activity-date">{{ formatDate(activity.startedAt) }}</span>
           </div>
         </div>
       </div>

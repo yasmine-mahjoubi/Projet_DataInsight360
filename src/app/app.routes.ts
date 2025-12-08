@@ -1,19 +1,19 @@
 import { Routes } from '@angular/router';
 import { AccueilComponent } from './pages/accueil/accueil';
 import { Home } from './pages/home/home';
-import { Datasets } from './pages/datasets/datasets';
+import { Datasets } from './pages/data-scientist/datasets/datasets';
 import { LoginComponent } from './pages/login/login';
 import { RegisterComponent } from './pages/register/register';
-import { DatasetDetails } from './pages/dataset-details/dataset-details';
+import { DatasetDetails } from './pages/data-scientist/dataset-details/dataset-details';
 import { DashboardComponent } from './pages/dashboard/dashboard';
 import { Themes } from './pages/themes/themes';
 import { Users } from './pages/users/users';
 import { authGuard, adminGuard, dataScientistGuard } from './guards/auth.guard';
 import { HomeDataScientist} from './pages/data-scientist/home/home';
 import { DashboardDSComponent } from './pages/data-scientist/dashboard/dashboard';
-import { ThemesDS } from './pages/data-scientist/themes/themes';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password';
+import { AnalysesDS } from './pages/data-scientist/analyses/analyses';
 
 export const routes: Routes = [
     { path: '', component: AccueilComponent },
@@ -26,16 +26,6 @@ export const routes: Routes = [
         component: Home,
         canActivate: [authGuard],
         children:[
-            {
-                path: 'datasets',
-                component: Datasets,
-                canActivate: [adminGuard]
-            },
-            {
-                path: 'datasets/:id',
-                component: DatasetDetails,
-                canActivate: [adminGuard]
-            },
             { 
                 path: 'dashboard', 
                 component: DashboardComponent,
@@ -51,6 +41,7 @@ export const routes: Routes = [
                 component: Users,
                 canActivate: [adminGuard]
             }
+
         ]
     },
     {
@@ -64,10 +55,20 @@ export const routes: Routes = [
                 canActivate: [dataScientistGuard]
             },
             {
-                path: 'themes',
-                component: ThemesDS,
+                path: 'analyses',
+                component: AnalysesDS,
                 canActivate: [dataScientistGuard]
-            }
+            },
+            {
+                path: 'datasets',
+                component: Datasets,
+                canActivate: [dataScientistGuard]
+            },
+            {
+                path: 'datasets/:id',
+                component: DatasetDetails,
+                canActivate: [dataScientistGuard]
+            },
         ]
     },
 ];

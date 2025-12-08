@@ -4,15 +4,16 @@ import { DatasetsService } from './datasets.service';
 import { AnalysesService } from './analyses.service';
 import { ThemeService } from './theme.service';
 import { AuthService } from './auth.service';
+import { Analyse } from '../pages/models/analyse.model';
 
 export interface DashboardStats {
   totalDatasets: number;
   totalAnalyses: number;
   analysesThisMois: number;
   biggestDataset: any;
-  recentActivity: any[];
-  analysesByMonth: any[];
-  datasetsByTheme: any[];
+  recentActivity: Analyse[];
+  analysesByMonth: { month: string; count: number }[];
+  datasetsByTheme: { name: string; count: number }[];
 }
 
 @Injectable({
@@ -27,7 +28,7 @@ export class DashboardService {
   getDashboardData(): Observable<DashboardStats> {
     return combineLatest([
       this.datasetsService.getAllDatasets(),
-      this.analysesService.getStaticAnalyses(), // Utilisez getStaticAnalyses() pour le moment
+      this.analysesService.getAllAnalyses(), // ✅ Changé de getStaticAnalyses() à getAllAnalyses()
       this.themeService.getThemes()
     ]).pipe(
       map(([datasets, analyses, themes]) => {
@@ -38,8 +39,8 @@ export class DashboardService {
         // const userAnalyses = analyses.filter(a => a.userId === currentUser?.uid);
         
         // Pour la démo, on utilise toutes les données
-        const userDatasets = datasets;
-        const userAnalyses = analyses;
+        const userDatasets = datasets || [];
+        const userAnalyses = analyses || [];
 
         // Total datasets
         const totalDatasets = userDatasets.length;
@@ -50,21 +51,25 @@ export class DashboardService {
         // Analyses ce mois
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
-        const analysesThisMois = userAnalyses.filter(a => {
-          const date = a.dateCreation instanceof Date ? a.dateCreation : new Date(a.dateCreation);
+        const analysesThisMois = userAnalyses.filter((a: Analyse) => {
+          const date = a.startedAt instanceof Date ? a.startedAt : new Date(a.startedAt);
           return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
         }).length;
 
         // Dataset le plus volumineux (simulé avec nombre de lignes)
         const biggestDataset = userDatasets.length > 0 
-          ? userDatasets.reduce((max, d) => (d.nombreLignes || 0) > (max.nombreLignes || 0) ? d : max, userDatasets[0])
+          ? userDatasets.reduce((max: any, d: any) => {
+              const maxLines = max.nombreLignes || 0;
+              const dLines = d.nombreLignes || 0;
+              return dLines > maxLines ? d : max;
+            }, userDatasets[0])
           : null;
 
         // Activité récente (5 dernières analyses)
         const recentActivity = userAnalyses
-          .sort((a, b) => {
-            const dateA = a.dateCreation instanceof Date ? a.dateCreation : new Date(a.dateCreation);
-            const dateB = b.dateCreation instanceof Date ? b.dateCreation : new Date(b.dateCreation);
+          .sort((a: Analyse, b: Analyse) => {
+            const dateA = a.startedAt instanceof Date ? a.startedAt : new Date(a.startedAt);
+            const dateB = b.startedAt instanceof Date ? b.startedAt : new Date(b.startedAt);
             return dateB.getTime() - dateA.getTime();
           })
           .slice(0, 5);
@@ -88,16 +93,16 @@ export class DashboardService {
     );
   }
 
-  private getAnalysesByMonth(analyses: any[]): any[] {
+  private getAnalysesByMonth(analyses: Analyse[]): { month: string; count: number }[] {
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     const currentDate = new Date();
-    const result = [];
+    const result: { month: string; count: number }[] = [];
 
     for (let i = 5; i >= 0; i--) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
       const monthName = months[date.getMonth()];
-      const count = analyses.filter(a => {
-        const aDate = a.dateCreation instanceof Date ? a.dateCreation : new Date(a.dateCreation);
+      const count = analyses.filter((a: Analyse) => {
+        const aDate = a.startedAt instanceof Date ? a.startedAt : new Date(a.startedAt);
         return aDate.getMonth() === date.getMonth() && aDate.getFullYear() === date.getFullYear();
       }).length;
       
@@ -107,17 +112,17 @@ export class DashboardService {
     return result;
   }
 
-  private getDatasetsByTheme(datasets: any[], themes: any[]): any[] {
+  private getDatasetsByTheme(datasets: any[], themes: any[]): { name: string; count: number }[] {
     const themeCounts: { [key: string]: number } = {};
     
-    datasets.forEach(d => {
+    datasets.forEach((d: any) => {
       const themeName = d.theme || 'Non classé';
       themeCounts[themeName] = (themeCounts[themeName] || 0) + 1;
     });
 
     return Object.entries(themeCounts).map(([name, count]) => ({
       name,
-      count
+      count: count as number
     }));
   }
 }

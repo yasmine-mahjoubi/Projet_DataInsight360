@@ -170,12 +170,7 @@
             <p class="activity-title-text">{{ getAnalyseTypeLabel(activity.type) }}</p>
             <p class="activity-subtitle">{{ activity.datasetName }}</p>
           </div>
-          <div class="activity-meta">
-            <span class="activity-status" [style.color]="getStatusColor(activity.statut)">
-              {{ activity.statut }}
-            </span>
-            <span class="activity-date">{{ formatDate(activity.dateCreation) }}</span>
-          </div>
+          
         </div>
       </div>
       <div class="no-data" *ngIf="dashboardData.recentActivity.length === 0">

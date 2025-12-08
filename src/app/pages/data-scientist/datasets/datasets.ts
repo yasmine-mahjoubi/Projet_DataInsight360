@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Pipe, PipeTransform } from '@angular/core';
-import { ThemeService } from '../../services/theme.service';
-import { DatasetsService } from '../../services/datasets.service';
+import { ThemeService } from '../../../services/theme.service';
+import { DatasetsService } from '../../../services/datasets.service';
 import { Router } from '@angular/router';
 
 // Pipe pour formater la taille des fichiers
@@ -445,11 +445,12 @@ export class Datasets implements OnInit {
 
   viewDataset(dataset: Dataset) {
    localStorage.setItem("dataset", JSON.stringify(dataset));
-     this.router.navigate(['home/datasets', dataset.id]);
+     this.router.navigate(['data-scientist/datasets', dataset.id]);
   }
 
   analyzeDataset(dataset: Dataset) {
-    console.log('Analyser le dataset:', dataset.name);
+    localStorage.setItem("dataset", JSON.stringify(dataset));
+    this.router.navigate(['data-scientist/analyses/new'], { queryParams: { datasetId: dataset.id } });
   }
 
   getCategoryClass(category: string): string {

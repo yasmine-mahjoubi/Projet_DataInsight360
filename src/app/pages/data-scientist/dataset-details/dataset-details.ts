@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
-import { DatasetsService } from '../../services/datasets.service';
-import { ConfirmModal } from '../models/confirm-modal/confirm-modal';
-import { SuccesModal } from '../models/succes-modal/succes-modal';
-import { ErrorModal } from '../models/error-modal/error-modal';
+import { DatasetsService } from '../../../services/datasets.service';
+import { ConfirmModal } from '../../models/confirm-modal/confirm-modal';
+import { SuccesModal } from '../../models/succes-modal/succes-modal';
+import { ErrorModal } from '../../models/error-modal/error-modal';
 
 interface Dataset {
   id: string;
