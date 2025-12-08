@@ -1,4 +1,12 @@
 <div class="analyses-container">
+    @if (notification()) {
+        <div class="toast-wrapper">
+            <div class="toast" [class.success]="notification()?.type==='success'" [class.error]="notification()?.type==='error'">
+                <div class="toast-message">{{ notification()?.message }}</div>
+                <button class="toast-close" (click)="clearNotification()">×</button>
+            </div>
+        </div>
+    }
     <div class="analyses-header">
         <h1 class="page-title">Analyses Statistiques</h1>
         <p class="page-subtitle">Historique et résultats de vos analyses</p>

@@ -1,0 +1,180 @@
+<div class="analyses-details-container">
+  <!-- Header -->
+  <div class="details-header">
+    <button class="back-button" (click)="goBack()">
+      <i class="ri-arrow-left-line"></i>
+      Retour aux analyses
+    </button>
+    
+    <div class="header-content">
+      <h1 class="page-title">Analyses du Dataset</h1>
+      <p class="page-subtitle">{{ datasetName }}</p>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="details-content">
+    <!-- État de chargement -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement des analyses...</p>
+    </div>
+
+    <!-- État d'erreur -->
+    <div *ngIf="!isLoading && errorMessage" class="error-state">
+      <i class="ri-error-warning-line"></i>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- État vide -->
+    <div *ngIf="!isLoading && !errorMessage && filteredAnalyses.length === 0" class="empty-state">
+      <i class="ri-folder-open-line"></i>
+      <p>Aucune analyse pour ce dataset</p>
+      <button class="btn-create" (click)="router.navigate(['/analyses/new'])">
+        <i class="ri-add-line"></i>
+        Créer une analyse
+      </button>
+    </div>
+
+    <!-- Grille des analyses -->
+    <div *ngIf="!isLoading && !errorMessage && filteredAnalyses.length > 0" class="analyses-grid">
+      <div *ngFor="let analyse of filteredAnalyses" 
+           class="analyse-card"
+           (click)="viewAnalyseDetails(analyse.id!, $event)">
+        <div class="card-header">
+          <div class="type-badge">{{ analyse.type }}</div>
+          <div [class]="'status-badge ' + getStatusClass(analyse.status)">
+            {{ getStatusLabel(analyse.status) }}
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="info-item">
+            <label>Colonnes:</label>
+            <span *ngIf="analyse.column1 || analyse.result?.column || analyse.result?.columnX">
+              <span *ngIf="analyse.column1">{{ analyse.column1 }}</span>
+              <span *ngIf="!analyse.column1 && analyse.result?.column">{{ analyse.result.column }}</span>
+              <span *ngIf="!analyse.column1 && analyse.result?.columnX">{{ analyse.result.columnX }}</span>
+              <span *ngIf="analyse.column2">, {{ analyse.column2 }}</span>
+              <span *ngIf="!analyse.column2 && analyse.result?.columnY">, {{ analyse.result.columnY }}</span>
+            </span>
+            <span *ngIf="!analyse.column1 && !analyse.result?.column && !analyse.result?.columnX">Non spécifiées</span>
+          </div>
+
+          <div class="info-item">
+            <label>Créée:</label>
+            <span>{{ formatDate(analyse.startedAt) }}</span>
+          </div>
+
+          <div class="info-item" *ngIf="analyse.finishedAt">
+            <label>Complétée:</label>
+            <span>{{ formatDate(analyse.finishedAt) }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-view" (click)="viewAnalyseDetails(analyse.id!, $event)">
+            <i class="ri-eye-line"></i>
+            Voir les détails
+          </button>
+          <button class="btn-delete" (click)="deleteAnalyse(analyse.id!, $event)">
+            <i class="ri-delete-bin-line"></i>
+            Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal détails analyse -->
+  <div *ngIf="selectedAnalyse" class="modal-overlay" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ selectedAnalyse.type }}</h2>
+        <button class="close-btn" (click)="closeDetails()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Graphiques -->
+        <div *ngIf="selectedAnalyseResult?.type === 'Histogramme automatique'" class="chart-container">
+          <canvas #histCanvas></canvas>
+        </div>
+
+        <div *ngIf="selectedAnalyseResult?.type === 'Corrélation'" class="correlation-container">
+          <div class="chart-container">
+            <canvas #scatterCanvas></canvas>
+          </div>
+          <div class="correlation-stats" *ngIf="selectedAnalyseResult?.result?.coefficient !== undefined">
+            <div class="correlation-item">
+              <label>Coefficient de corrélation:</label>
+              <span class="correlation-value">{{ selectedAnalyseResult.result.coefficient | number: '1.4-4' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedAnalyseResult?.type === 'Valeurs aberrantes'" class="outliers-container">
+          <div class="chart-container">
+            <canvas #boxCanvas></canvas>
+          </div>
+          <div class="outliers-list" *ngIf="selectedAnalyseResult.result.outliers && selectedAnalyseResult.result.outliers.length > 0">
+            <h4>Valeurs aberrantes ({{ selectedAnalyseResult.result.outliers.length }})</h4>
+            <div class="outliers-values">
+              <span *ngFor="let outlier of selectedAnalyseResult.result.outliers" class="outlier-badge">
+                {{ outlier | number: '1.2-2' }}
+              </span>
+            </div>
+          </div>
+          <div class="no-outliers" *ngIf="!selectedAnalyseResult.result.outliers || selectedAnalyseResult.result.outliers.length === 0">
+            <p>Aucune valeur aberrante détectée</p>
+          </div>
+        </div>
+
+        <!-- Statistiques descriptives -->
+        <div *ngIf="selectedAnalyseResult?.type === 'Statistiques descriptives'" class="stats-container">
+          <div class="stats-grid">
+            <div class="stat-item" *ngFor="let key of selectedAnalyseResult?.result | keyvalue">
+              <label>{{ formatLabel(key.key) }}</label>
+              <span *ngIf="typeof(key.value) === 'number'">{{ key.value | number: '1.2-2' }}</span>
+              <span *ngIf="typeof(key.value) !== 'number'">{{ key.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Détails de l'analyse -->
+        <div class="analysis-details">
+          <h3>Informations</h3>
+          <div class="details-grid">
+            <div class="detail-item">
+              <label>Type:</label>
+              <span>{{ selectedAnalyse.type }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Statut:</label>
+              <span [class]="'status-text ' + getStatusClass(selectedAnalyse.status)">
+                {{ getStatusLabel(selectedAnalyse.status) }}
+              </span>
+            </div>
+            <div class="detail-item" *ngIf="selectedAnalyse.column1">
+              <label>Colonne 1:</label>
+              <span>{{ selectedAnalyse.column1 }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedAnalyse.column2">
+              <label>Colonne 2:</label>
+              <span>{{ selectedAnalyse.column2 }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Créée:</label>
+              <span>{{ formatDate(selectedAnalyse.startedAt) }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedAnalyse.finishedAt">
+              <label>Complétée:</label>
+              <span>{{ formatDate(selectedAnalyse.finishedAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

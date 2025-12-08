@@ -14,6 +14,8 @@ import { DashboardDSComponent } from './pages/data-scientist/dashboard/dashboard
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password';
 import { ResetPasswordComponent } from './pages/reset-password/reset-password';
 import { AnalysesDS } from './pages/data-scientist/analyses/analyses';
+import { AnalysesDetails } from './pages/data-scientist/analyses-details/analyses-details';
+import { AnalysesNew } from './pages/data-scientist/analyses-new/analyses-new';
 
 export const routes: Routes = [
     { path: '', component: AccueilComponent },
@@ -60,6 +62,16 @@ export const routes: Routes = [
                 canActivate: [dataScientistGuard]
             },
             {
+                path: "analyses/new",
+                component : AnalysesNew,
+                canActivate: [dataScientistGuard]
+            },
+            {
+                path: "analyses/:id",
+                component : AnalysesDetails,
+                canActivate: [dataScientistGuard]
+            },
+            {
                 path: 'datasets',
                 component: Datasets,
                 canActivate: [dataScientistGuard]
@@ -68,7 +80,7 @@ export const routes: Routes = [
                 path: 'datasets/:id',
                 component: DatasetDetails,
                 canActivate: [dataScientistGuard]
-            },
+            }
         ]
     },
 ];

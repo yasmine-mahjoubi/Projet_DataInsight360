@@ -351,3 +351,58 @@
     justify-content: flex-end; /* aligner à droite */
     margin-top: 20px;
 }
+
+/* Toast / notification styles */
+.toast-wrapper {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1200;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.toast {
+    min-width: 240px;
+    max-width: 380px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(2,6,23,0.12);
+    color: white;
+    transform: translateY(-6px);
+    opacity: 0;
+    transition: transform 220ms ease, opacity 220ms ease;
+    background: linear-gradient(90deg, #48bb78, #2f855a);
+}
+
+.toast.success { background: linear-gradient(90deg,#48bb78,#2f855a); }
+.toast.error { background: linear-gradient(90deg,#f56565,#c53030); }
+
+.toast-message {
+    font-weight: 600;
+    font-size: 14px;
+    color: #ffffff;
+    flex: 1 1 auto;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.95);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 140ms ease, transform 120ms ease;
+}
+
+.toast-close:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
+
+/* when toast is present, animate into view via simple CSS using selector: (we rely on presence in DOM) */
+.toast-wrapper .toast { opacity: 1; transform: translateY(0); }

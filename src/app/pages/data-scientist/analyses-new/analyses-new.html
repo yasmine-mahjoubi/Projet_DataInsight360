@@ -1,0 +1,85 @@
+<div class="new-analysis-container">
+  <div class="header">
+    <h1 class="page-title">Lancer une analyse</h1>
+    <p class="page-subtitle">Choisissez un dataset, un type d'analyse et les colonnes à analyser</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="analysis-form">
+
+    <!-- Sélecteur Dataset -->
+    <div class="form-group">
+      <label>Dataset</label>
+      <select formControlName="datasetId">
+        <option value="">-- Sélectionner un dataset --</option>
+        <option *ngFor="let d of datasets" [value]="d.id">
+          {{ d.name }}
+        </option>
+      </select>
+      <div *ngIf="form.get('datasetId')?.touched && form.get('datasetId')?.invalid" class="error">
+        Dataset requis
+      </div>
+    </div>
+
+    <!-- Sélecteur Type d'analyse -->
+    <div class="form-group">
+      <label>Type d’analyse</label>
+      <select formControlName="type">
+        <option value="">-- Choisir le type d’analyse --</option>
+        <option *ngFor="let t of analyseTypes" [value]="t">
+          {{ t }}
+        </option>
+      </select>
+      <div *ngIf="form.get('type')?.touched && form.get('type')?.invalid" class="error">
+        Type requis
+      </div>
+    </div>
+
+    <!-- Sélecteur Colonne 1 (première colonne) -->
+    <div class="form-group" *ngIf="numericColumns.length > 0">
+      <label>Colonne à analyser</label>
+      <select formControlName="column1">
+        <option value="">-- Sélectionner une colonne --</option>
+        <option *ngFor="let col of numericColumns" [value]="col">
+          {{ col }}
+        </option>
+      </select>
+      <div *ngIf="form.get('column1')?.touched && form.get('column1')?.invalid" class="error">
+        Colonne requise
+      </div>
+    </div>
+
+    <!-- Sélecteur Colonne 2 (deuxième colonne pour Corrélation) -->
+    <div class="form-group" *ngIf="needsTwoColumns() && numericColumns.length > 1">
+      <label>Deuxième colonne (pour Corrélation)</label>
+      <select formControlName="column2">
+        <option value="">-- Sélectionner une colonne --</option>
+        <option *ngFor="let col of numericColumns" [value]="col" [disabled]="col === form.get('column1')?.value">
+          {{ col }}
+        </option>
+      </select>
+      <div *ngIf="form.get('column2')?.touched && form.get('column2')?.invalid" class="error">
+        Deuxième colonne requise pour Corrélation
+      </div>
+    </div>
+
+    <!-- Message si pas de colonnes numériques -->
+    <div class="form-group info-message" *ngIf="form.get('datasetId')?.value && numericColumns.length === 0">
+      <p>⚠️ Aucune colonne numérique trouvée dans ce dataset. Veuillez sélectionner un autre dataset.</p>
+    </div>
+
+    <!-- Message si l'analyse existe déjà -->
+    <div class="form-group warning-message" *ngIf="analyseExists">
+      <p>⚠️ Cette analyse existe déjà dans votre historique. Consultez l'historique pour voir les résultats.</p>
+    </div>
+
+    <!-- Bouton et spinner -->
+    <button type="submit" [disabled]="form.invalid || isLoading" class="btn-submit">
+      <span *ngIf="!isLoading">Lancer l'analyse</span>
+      <span *ngIf="isLoading" class="spinner-container">
+        <span class="spinner"></span>
+        Analyse en cours...
+      </span>
+    </button>
+
+  </form>
+</div>

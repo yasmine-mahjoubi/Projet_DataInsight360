@@ -83,12 +83,12 @@ export class AnalysesDS {
 
   // === Navigation ===
   createNewAnalyse() {
-    this.router.navigate(['/analyses/new']);
+    this.router.navigate(['data-scientist/analyses/new']);
   }
 
   openDetails(datasetId: string) {
     // Naviguer vers la page analyses-details du dataset
-    this.router.navigate(['/analyses', datasetId]);
+    this.router.navigate(['data-scientist/analyses', datasetId]);
   }
 
  deleteAnalyse(id: string) {
@@ -104,7 +104,23 @@ export class AnalysesDS {
 
     // Supprimer localement via le service
     this.analysesService.deleteAnalyse(id);
+
+    // notifier l'utilisateur via toast stylée
+    this.showNotification(`Analyse supprimée avec succès.`, 'success');
   });
 }
+
+  // === Notifications (toast) ===
+  notification = signal<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  showNotification(message: string, type: 'success' | 'error' = 'success', duration = 3500) {
+    this.notification.set({ message, type });
+    // auto-hide
+    setTimeout(() => this.notification.set(null), duration);
+  }
+
+  clearNotification() {
+    this.notification.set(null);
+  }
 
 }
