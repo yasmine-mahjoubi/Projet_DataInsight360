@@ -62,10 +62,14 @@ export class Users implements OnInit {
   formError: string = '';
   successMessage: string = '';
   errorMsg: string = '';
+  
+  // Propriétés pour les mots de passe
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
 
   // Propriétés pour la pagination
   currentPage: number = 1;
-  pageSize: number = 8;
+  pageSize: number = 6;
   totalPages: number = 1;
   totalFilteredItems: number = 0;
   startIndex: number = 0;
@@ -84,6 +88,8 @@ export class Users implements OnInit {
     this.userForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required]],
       role: ['', Validators.required],
       country: ['', Validators.required]
     });
@@ -190,6 +196,15 @@ export class Users implements OnInit {
     this.editingUser = null;
     this.userForm.reset();
     this.formError = '';
+    this.showPassword = false;
+    this.showConfirmPassword = false;
+    
+    // Rendre les champs de mot de passe obligatoires pour la création
+    this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+    this.userForm.get('confirmPassword')?.setValidators([Validators.required]);
+    this.userForm.get('password')?.updateValueAndValidity();
+    this.userForm.get('confirmPassword')?.updateValueAndValidity();
+    
     this.showUserModal = true;
   }
 
@@ -202,7 +217,16 @@ export class Users implements OnInit {
       role: user.role,
       country: user.country
     });
+    
+    // Les mots de passe ne sont pas obligatoires lors de la modification
+    this.userForm.get('password')?.clearValidators();
+    this.userForm.get('confirmPassword')?.clearValidators();
+    this.userForm.get('password')?.updateValueAndValidity();
+    this.userForm.get('confirmPassword')?.updateValueAndValidity();
+    
     this.formError = '';
+    this.showPassword = false;
+    this.showConfirmPassword = false;
     this.showUserModal = true;
   }
 
@@ -213,6 +237,14 @@ export class Users implements OnInit {
     this.editingUser = null;
     this.formError = '';
     this.isSubmitting = false;
+    this.showPassword = false;
+    this.showConfirmPassword = false;
+  }
+
+  get passwordMismatch(): boolean {
+    const password = this.userForm.get('password')?.value;
+    const confirmPassword = this.userForm.get('confirmPassword')?.value;
+    return password !== confirmPassword && confirmPassword !== '';
   }
 
   async onUserSubmit() {
@@ -223,6 +255,12 @@ export class Users implements OnInit {
     if (this.userForm.invalid) {
       console.log('❌ Formulaire invalide');
       this.formError = 'Veuillez corriger les erreurs dans le formulaire.';
+      return;
+    }
+
+    // Vérifier la correspondance des mots de passe
+    if (this.passwordMismatch) {
+      this.formError = 'Les mots de passe ne correspondent pas.';
       return;
     }
 
@@ -269,7 +307,10 @@ export class Users implements OnInit {
 
     // Créer l'utilisateur dans Firebase
     const userToCreate = {
-      ...userData,
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      country: userData.country,
       dateC: new Date()
     };
     
@@ -291,8 +332,16 @@ export class Users implements OnInit {
       throw new Error('Un autre utilisateur avec cet email existe déjà.');
     }
 
+    // Préparer les données à mettre à jour (sans les mots de passe)
+    const updateData: any = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      country: userData.country
+    };
+
     // Mettre à jour l'utilisateur dans Firebase
-    await this.usersService.updateUser(id, userData);
+    await this.usersService.updateUser(id, updateData);
     
     // Recharger les utilisateurs
     this.loadUsers();

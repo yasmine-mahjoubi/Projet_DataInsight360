@@ -4,6 +4,7 @@ import { DatasetsService } from './datasets.service';
 import { AnalysesService } from './analyses.service';
 import { ThemeService } from './theme.service';
 import { AuthService } from './auth.service';
+import { UsersService } from './users.service';
 import { Analyse } from '../pages/models/analyse.model';
 
 export interface DashboardStats {
@@ -14,6 +15,9 @@ export interface DashboardStats {
   recentActivity: Analyse[];
   analysesByMonth: { month: string; count: number }[];
   datasetsByTheme: { name: string; count: number }[];
+  totalUsers: number;
+  totalThemes: number;
+  usersByMonth: { month: string; count: number }[];
 }
 
 @Injectable({
@@ -24,14 +28,16 @@ export class DashboardService {
   private analysesService = inject(AnalysesService);
   private themeService = inject(ThemeService);
   private authService = inject(AuthService);
+  private usersService = inject(UsersService);
 
   getDashboardData(): Observable<DashboardStats> {
     return combineLatest([
       this.datasetsService.getAllDatasets(),
-      this.analysesService.getAllAnalyses(), // ✅ Changé de getStaticAnalyses() à getAllAnalyses()
-      this.themeService.getThemes()
+      this.analysesService.getAllAnalyses(),
+      this.themeService.getThemes(),
+      this.usersService.getUsers()
     ]).pipe(
-      map(([datasets, analyses, themes]) => {
+      map(([datasets, analyses, themes, users]) => {
         const currentUser = this.authService.currentUser();
         
         // Filtrer par utilisateur si nécessaire
@@ -41,12 +47,20 @@ export class DashboardService {
         // Pour la démo, on utilise toutes les données
         const userDatasets = datasets || [];
         const userAnalyses = analyses || [];
+        const allUsers = users || [];
+        const allThemes = themes || [];
 
         // Total datasets
         const totalDatasets = userDatasets.length;
 
         // Total analyses
         const totalAnalyses = userAnalyses.length;
+
+        // Total utilisateurs
+        const totalUsers = allUsers.length;
+
+        // Total thèmes
+        const totalThemes = allThemes.length;
 
         // Analyses ce mois
         const currentMonth = new Date().getMonth();
@@ -77,6 +91,9 @@ export class DashboardService {
         // Analyses par mois (6 derniers mois)
         const analysesByMonth = this.getAnalysesByMonth(userAnalyses);
 
+        // Utilisateurs par mois (données statiques avec augmentation)
+        const usersByMonth = this.getStaticUsersByMonth();
+
         // Datasets par thème
         const datasetsByTheme = this.getDatasetsByTheme(userDatasets, themes);
 
@@ -87,7 +104,10 @@ export class DashboardService {
           biggestDataset,
           recentActivity,
           analysesByMonth,
-          datasetsByTheme
+          datasetsByTheme,
+          totalUsers,
+          totalThemes,
+          usersByMonth
         };
       })
     );
@@ -110,6 +130,19 @@ export class DashboardService {
     }
 
     return result;
+  }
+
+  private getStaticUsersByMonth(): { month: string; count: number }[] {
+    // Données statiques avec augmentation progressive
+    // Juillet à Décembre 2024
+    return [
+      { month: 'Jul', count: 1 },
+      { month: 'Aoû', count: 1 },
+      { month: 'Sep', count: 1 },
+      { month: 'Oct', count: 1 },
+      { month: 'Nov', count: 2 },
+      { month: 'Déc', count: 6 }
+    ];
   }
 
   private getDatasetsByTheme(datasets: any[], themes: any[]): { name: string; count: number }[] {

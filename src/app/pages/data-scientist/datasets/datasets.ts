@@ -69,7 +69,7 @@ export class Datasets implements OnInit {
 
   // Nouvelles propriétés pour la pagination
   currentPage: number = 1;
-  pageSize: number = 8;
+  pageSize: number = 4;
   paginatedDatasets: Dataset[] = [];
   totalPages: number = 1;
   totalFilteredItems: number = 0;

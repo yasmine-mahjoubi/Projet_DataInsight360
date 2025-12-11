@@ -246,6 +246,60 @@
                 </div>
             </div>
 
+            <!-- Champ Mot de passe (seulement à la création) -->
+            <div class="form-group" *ngIf="!editingUser">
+                <label for="userPassword" class="form-label">
+                    Mot de passe 
+                </label>
+                <div class="input-wrapper-password">
+                    <input
+                        [type]="showPassword ? 'text' : 'password'"
+                        id="userPassword"
+                        formControlName="password"
+                        class="form-input"
+                        placeholder="Minimum 6 caractères"
+                        [class.error]="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+                    <button 
+                        type="button" 
+                        class="toggle-password"
+                        (click)="showPassword = !showPassword">
+                        <i [class]="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'"></i>
+                    </button>
+                </div>
+                <div class="error-message" *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched">
+                    <span *ngIf="userForm.get('password')?.errors?.['required']">Le mot de passe est requis</span>
+                    <span *ngIf="userForm.get('password')?.errors?.['minlength']">Minimum 6 caractères requis</span>
+                </div>
+            </div>
+
+            <!-- Champ Confirmation mot de passe (seulement à la création) -->
+            <div class="form-group" *ngIf="!editingUser">
+                <label for="userConfirmPassword" class="form-label">
+                    Confirmer le mot de passe 
+                </label>
+                <div class="input-wrapper-password">
+                    <input
+                        [type]="showConfirmPassword ? 'text' : 'password'"
+                        id="userConfirmPassword"
+                        formControlName="confirmPassword"
+                        class="form-input"
+                        placeholder="Retapez le mot de passe"
+                        [class.error]="(userForm.get('confirmPassword')?.invalid && userForm.get('confirmPassword')?.touched) || passwordMismatch">
+                    <button 
+                        type="button" 
+                        class="toggle-password"
+                        (click)="showConfirmPassword = !showConfirmPassword">
+                        <i [class]="showConfirmPassword ? 'ri-eye-off-line' : 'ri-eye-line'"></i>
+                    </button>
+                </div>
+                <div class="error-message" *ngIf="userForm.get('confirmPassword')?.invalid && userForm.get('confirmPassword')?.touched">
+                    <span *ngIf="userForm.get('confirmPassword')?.errors?.['required']">La confirmation est requise</span>
+                </div>
+                <div class="error-message" *ngIf="passwordMismatch && userForm.get('confirmPassword')?.touched">
+                    <span>Les mots de passe ne correspondent pas</span>
+                </div>
+            </div>
+
             <!-- Champ Rôle -->
             <div class="form-group">
                 <label for="userRole" class="form-label">
@@ -297,7 +351,7 @@
                 <button type="button" class="btn-cancel" (click)="closeUserModal()">
                     Annuler
                 </button>
-                <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+                <button type="submit" class="btn-submit" [disabled]="isSubmitting || (passwordMismatch && !editingUser)">
                     <i class="ri-user-add-line" *ngIf="!isSubmitting && !editingUser"></i>
                     <i class="ri-edit-line" *ngIf="!isSubmitting && editingUser"></i>
                     <i class="ri-loader-4-line spinning" *ngIf="isSubmitting"></i>
