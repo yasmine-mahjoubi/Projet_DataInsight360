@@ -450,7 +450,7 @@ export class Datasets implements OnInit {
 
   analyzeDataset(dataset: Dataset) {
     localStorage.setItem("dataset", JSON.stringify(dataset));
-    this.router.navigate(['data-scientist/analyses/new'], { queryParams: { datasetId: dataset.id } });
+    this.router.navigate(['data-scientist/analyses', dataset.id], { queryParams: { datasetId: dataset.id } });
   }
 
   getCategoryClass(category: string): string {

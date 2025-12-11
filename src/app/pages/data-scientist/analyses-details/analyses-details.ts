@@ -7,6 +7,8 @@ import { Analyse } from '../../models/analyse.model';
 import { Chart, registerables } from 'chart.js';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Timestamp } from 'firebase/firestore';
+
 
 Chart.register(...registerables);
 
@@ -59,23 +61,40 @@ export class AnalysesDetails implements OnInit, AfterViewInit, OnDestroy {
         }
       });
 
-    // Charger toutes les analyses et filtrer par dataset ID
-    this.analysesService.getAllAnalyses()
+        this.analysesService.getAllAnalyses()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (analyses) => {
-          this.analyses = analyses;
+        next: analyses => {
+
+          // 🔥 Conversion obligatoire pour éviter l'erreur NG02100
+          const converted = analyses.map(a => ({
+            ...a,
+  startedAt:
+    a.startedAt instanceof Timestamp
+      ? a.startedAt.toDate()
+      : a.startedAt
+        ? new Date(a.startedAt)
+        : new Date(0),  // ✔️ fallback obligatoire si vide
+
+  finishedAt:
+    a.finishedAt instanceof Timestamp
+      ? a.finishedAt.toDate()
+      : a.finishedAt
+        ? new Date(a.finishedAt)
+        : new Date(0)   // ✔️ fallback obligatoire si vide
+}));
+
+          this.analyses = converted;
           this.filterAnalysesByDataset();
           this.isLoading = false;
         },
-        error: (err) => {
+        error: err => {
           console.error('Erreur lors du chargement des analyses:', err);
           this.errorMessage = 'Impossible de charger les analyses';
           this.isLoading = false;
         }
       });
   }
-
   ngAfterViewInit(): void {
     // Rendu du graphique une fois que les canvas sont disponibles
     if (this.selectedAnalyseResult) {
@@ -404,5 +423,9 @@ export class AnalysesDetails implements OnInit, AfterViewInit, OnDestroy {
    */
   goBack(): void {
     this.router.navigate(['/data-scientist/analyses']);
+  }
+
+  createNewAnalyse() {
+    this.router.navigate(['data-scientist/analyses/new']);
   }
 }

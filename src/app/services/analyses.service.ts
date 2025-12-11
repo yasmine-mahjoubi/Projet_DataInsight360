@@ -2,7 +2,7 @@ import { Injectable,inject } from '@angular/core';
 import { BehaviorSubject, Observable, of, switchMap, map, delay } from 'rxjs';
 import { Analyse, AnalyseType } from '../pages/models/analyse.model';
 import { DatasetsService } from './datasets.service';
-import { Firestore, collection, addDoc, doc, deleteDoc, getDocs } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, doc, deleteDoc, collectionData } from '@angular/fire/firestore';
 import { mean,
   minValue,
   maxValue,
@@ -19,39 +19,43 @@ import { mean,
 })
 export class AnalysesService {
   
-  private analyses$ = new BehaviorSubject<Analyse[]>(this.loadFromStorage());
   private datasetService = inject(DatasetsService);
   private firestore = inject(Firestore);
 
+
   // Charger les analyses depuis Firebase au démarrage
-  constructor() {
-    this.fetchFromFirestore();
-  }
+  constructor() {}
 
-  // ------------------- STORAGE LOCAL -------------------
-  private saveToStorage() {
-    localStorage.setItem('analyses', JSON.stringify(this.analyses$.value));
-  }
-
-  private loadFromStorage(): Analyse[] {
-    const data = localStorage.getItem('analyses');
-    return data ? JSON.parse(data) : [];
-  }
-
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 10);
-  }
 
   // ------------------- GETTERS -------------------
   getAllAnalyses(): Observable<Analyse[]> {
-    return this.analyses$.asObservable();
+    const collectionRef = collection(this.firestore, 'analyses');
+    return collectionData(collectionRef, { idField: 'id' }) as Observable<Analyse[]>;
   }
 
-  getById(id: string): Observable<Analyse | undefined> {
+
+  getAnalysesById(id: string): Observable<Analyse | undefined> {
     return this.getAllAnalyses().pipe(
       map(list => list.find(a => a.id === id))
     );
+}
+
+
+    addAnalyse(analyse:Analyse) {
+    console.log("SERVICE : addAnalyse() appelé");
+    console.log("Analyse envoyée :", analyse);
+
+    const collectionRef = collection(this.firestore, 'analyses');
+    return addDoc(collectionRef, analyse);
   }
+
+deleteAnalyse(id: string) {
+    console.log(` SERVICE : deleteAnalyse(${id}) appelé`);
+
+    const docRef = doc(this.firestore, `analyses/${id}`);
+    return deleteDoc(docRef);
+  }
+
 
   /**
    * Vérifie si une analyse identique existe déjà
@@ -60,12 +64,16 @@ export class AnalysesService {
    * - Le même type
    * - Les mêmes colonnes (column1 et column2)
    */
-  analyseExists(datasetId: string, type: AnalyseType, column1?: string, column2?: string): boolean {
-    return this.analyses$.value.some(a => 
-      a.datasetId === datasetId && 
-      a.type === type && 
-      a.result !== undefined && // L'analyse doit être terminée avec résultat
-      this.compareAnalyseColumns(a, column1, column2)
+  analyseExists(datasetId: string, type: AnalyseType, column1?: string, column2?: string): Observable<boolean> {
+    return this.getAllAnalyses().pipe(
+      map(list =>
+        list.some(a =>
+          a.datasetId === datasetId &&
+          a.type === type &&
+          a.result !== undefined &&
+          this.compareAnalyseColumns(a, column1, column2)
+        )
+      )
     );
   }
 
@@ -84,7 +92,7 @@ export class AnalysesService {
 
   // ------------------- RUN Analyse -------------------
   runAnalyse(datasetId: string, type: AnalyseType, column1?: string, column2?: string): Observable<Analyse> {
-  const id = this.generateId();
+
   const startedAt = new Date();
 
   return this.datasetService.getDatasetById(datasetId).pipe(
@@ -92,7 +100,6 @@ export class AnalysesService {
       if (!dataset) throw new Error("Dataset introuvable");
 
       const Analyse: Analyse = {
-        id,
         datasetId,
         datasetName: dataset.name,
         type,
@@ -100,11 +107,6 @@ export class AnalysesService {
         startedAt
       };
 
-      if (!this.analyses$.value.find(a => a.id === Analyse.id)) {
-  this.analyses$.next([...this.analyses$.value, Analyse]);
-}
-
-      this.saveToStorage();
 
       return of(Analyse).pipe(
         delay(3000), 
@@ -213,86 +215,14 @@ export class AnalysesService {
 
     Analyse.status = 'Terminé';
     Analyse.finishedAt = new Date();
-    this.saveAnalyseToFirestore(Analyse);
 
   } catch (err) {
     Analyse.status = 'Échec';
     Analyse.result = { error: 'Impossible de calculer cette analyse.' };
   }
-  const updated = this.analyses$.value.map(a => a.id === Analyse.id ? Analyse : a);
-  this.analyses$.next(updated);
-
-  this.saveToStorage();
 
   return Analyse;
 }
 
-
-  // ------------------- SAUVEGARDE FIREBASE -------------------
-  private async saveAnalyseToFirestore(Analyse: Analyse) {
-  const colRef = collection(this.firestore, 'analyses');
-  try {
-    const docRef = await addDoc(colRef, Analyse);
-    console.log('Analyse sauvegardée dans Firebase :', docRef.id);
-    Analyse.firestoreId = docRef.id;  // stocker l'ID pour pouvoir supprimer plus tard
-  } catch (err) {
-    console.error('Erreur sauvegarde Firebase :', err);
-  }
-}
-deleteAnalyseFromFirebase(analyse: Analyse) {
-  if (!analyse.firestoreId) return;
-
-  const docRef = doc(this.firestore, 'analyses', analyse.firestoreId);
-  deleteDoc(docRef)
-    .then(() => console.log('Analyse supprimée de Firebase :', analyse.firestoreId))
-    .catch(err => console.error('Erreur suppression Firebase :', err));
-}
-deleteAnalyse(id: string) {
-  const analyse = this.analyses$.value.find(a => a.id === id);
-  if (!analyse) return;
-
-  // Supprimer de Firebase si nécessaire
-  this.deleteAnalyseFromFirebase(analyse);
-
-  // Supprimer du BehaviorSubject et du localStorage
-  const updated = this.analyses$.value.filter(a => a.id !== id);
-  this.analyses$.next(updated);
-  this.saveToStorage();
-}
-  
-  // ------------------- CHARGER DEPUIS FIREBASE -------------------
-  private async fetchFromFirestore() {
-    try {
-      const colRef = collection(this.firestore, 'analyses');
-      const querySnapshot = await getDocs(colRef);
-      if (querySnapshot.empty) return;
-
-      const list: Analyse[] = querySnapshot.docs.map(d => {
-        const data = d.data() as any;
-        const startedAt = data.startedAt && (data.startedAt.toDate ? data.startedAt.toDate() : new Date(data.startedAt));
-        const finishedAt = data.finishedAt && (data.finishedAt.toDate ? data.finishedAt.toDate() : new Date(data.finishedAt));
-
-        return {
-          id: data.id || d.id,
-          firestoreId: d.id,
-          datasetId: data.datasetId,
-          datasetName: data.datasetName,
-          type: data.type,
-          status: data.status,
-          startedAt: startedAt || new Date(),
-          finishedAt: finishedAt,
-          column1: data.column1,
-          column2: data.column2,
-          result: data.result
-        } as Analyse;
-      });
-
-      this.analyses$.next(list);
-      this.saveToStorage();
-      console.log('Analyses chargées depuis Firebase:', list.length);
-    } catch (err) {
-      console.error('Erreur lors du chargement des analyses depuis Firebase', err);
-    }
-  }
 
 }

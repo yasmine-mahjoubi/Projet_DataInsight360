@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AnalysesService } from '../../../services/analyses.service';
 import { Analyse } from '../../models/analyse.model';
+import { Timestamp } from 'firebase/firestore';
 
 @Component({
   selector: 'app-analyses',
@@ -32,9 +33,14 @@ export class AnalysesDS {
 }
 
   // Charger analyses au démarrage
-  ngOnInit() {
+    ngOnInit() {
     this.analysesService.getAllAnalyses().subscribe(list => {
-      this.analyses.set(list);
+      // Convertir Firebase Timestamp en Date
+      const converted = list.map(a => ({
+        ...a,
+        startedAt: a.startedAt instanceof Timestamp ? a.startedAt.toDate() : new Date(a.startedAt)
+      }));
+      this.analyses.set(converted);
     });
   }
 
@@ -90,20 +96,17 @@ export class AnalysesDS {
     // Naviguer vers la page analyses-details du dataset
     this.router.navigate(['data-scientist/analyses', datasetId]);
   }
-
- deleteAnalyse(id: string) {
+  deleteAnalyse(id: string) {
   // Récupérer l'analyse dans le service au lieu du composant
   const analyse = this.analysesService.getAllAnalyses().subscribe(list => {
     const target = list.find(a => a.id === id);
     if (!target) return;
 
     // Supprimer de Firebase si nécessaire
-    if (target.firestoreId) {
-      this.analysesService.deleteAnalyseFromFirebase(target);
+    if (target.id) {
+      this.analysesService.deleteAnalyse(target.id);
     }
 
-    // Supprimer localement via le service
-    this.analysesService.deleteAnalyse(id);
 
     // notifier l'utilisateur via toast stylée
     this.showNotification(`Analyse supprimée avec succès.`, 'success');

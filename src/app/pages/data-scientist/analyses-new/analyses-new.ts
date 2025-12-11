@@ -161,35 +161,50 @@ extractNumericColumns(datasetId: string): { columnName: string; values: number[]
     return this.form.get('type')?.value === 'Corrélation';
   }
 
-  submit() {
-    if (this.form.invalid) return;
+submit() {
+  if (this.form.invalid) return;
 
-    const { datasetId, type, column1, column2 } = this.form.value;
+  const { datasetId, type, column1, column2 } = this.form.value;
 
-    console.log('Vérification de l\'analyse:', { datasetId, type, column1, column2 });
+  console.log('Vérification de l\'analyse:', { datasetId, type, column1, column2 });
 
-    // Vérifier si cette analyse existe déjà
-    if (this.analysesService.analyseExists(datasetId, type, column1, column2)) {
-      this.analyseExists = true;
-      console.warn('Cette analyse existe déjà dans l\'historique');
-      return;
-    }
+  this.isLoading = true;
 
-    this.analyseExists = false;
-    this.isLoading = true;
+  // Vérifier si l’analyse existe déjà
+  this.analysesService.analyseExists(datasetId, type, column1, column2)
+    .subscribe(exists => {
 
-    // Lancer l'analyse avec les colonnes sélectionnées
-    this.analysesService.runAnalyse(datasetId, type, column1, column2).subscribe({
-      next: (Analyse: Analyse) => {
-        console.log('Analyse terminée :', Analyse);
+      if (exists) {
         this.isLoading = false;
-        // Redirection vers la liste des analyses
-        this.router.navigate(['data-scientist/analyses']);
-      },
-      error: (err) => {
-        console.error('Erreur analyse :', err);
-        this.isLoading = false;
+        this.analyseExists = true;
+        console.warn('Cette analyse existe déjà dans l’historique');
+        return;
       }
+
+      this.analyseExists = false;
+
+      // Lancer l’analyse
+      this.analysesService.runAnalyse(datasetId, type, column1, column2)
+        .subscribe({
+          next: (analyse: Analyse) => {
+
+            console.log('Analyse terminée :', analyse);
+
+            // ➤ Ajouter manuellement dans Firebase ici
+            this.analysesService.addAnalyse(analyse)
+              .then(() => {
+                this.isLoading = false;
+                this.router.navigate(['data-scientist/analyses']);
+              });
+          },
+          error: (err) => {
+            console.error('Erreur analyse :', err);
+            this.isLoading = false;
+          }
+        });
+
     });
-  }
+
+}
+
 }

@@ -30,7 +30,7 @@
     <div *ngIf="!isLoading && !errorMessage && filteredAnalyses.length === 0" class="empty-state">
       <i class="ri-folder-open-line"></i>
       <p>Aucune analyse pour ce dataset</p>
-      <button class="btn-create" (click)="router.navigate(['/analyses/new'])">
+      <button class="btn-create" (click)="createNewAnalyse()">
         <i class="ri-add-line"></i>
         Créer une analyse
       </button>
