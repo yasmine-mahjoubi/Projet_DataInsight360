@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable, of, switchMap, map, delay } from 'rxjs';
 import { Analyse, AnalyseType } from '../pages/models/analyse.model';
 import { DatasetsService } from './datasets.service';
 import { Firestore, collection, addDoc, doc, deleteDoc, collectionData } from '@angular/fire/firestore';
+import { take } from 'rxjs/operators';
 import { mean,
   minValue,
   maxValue,
@@ -66,6 +67,7 @@ deleteAnalyse(id: string) {
    */
   analyseExists(datasetId: string, type: AnalyseType, column1?: string, column2?: string): Observable<boolean> {
     return this.getAllAnalyses().pipe(
+      take(1),
       map(list =>
         list.some(a =>
           a.datasetId === datasetId &&

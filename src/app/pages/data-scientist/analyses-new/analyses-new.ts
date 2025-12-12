@@ -160,7 +160,6 @@ extractNumericColumns(datasetId: string): { columnName: string; values: number[]
   needsTwoColumns(): boolean {
     return this.form.get('type')?.value === 'Corrélation';
   }
-
 submit() {
   if (this.form.invalid) return;
 
@@ -206,5 +205,4 @@ submit() {
     });
 
 }
-
 }
